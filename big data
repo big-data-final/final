@@ -1,0 +1,298 @@
+setwd("~/Downloads/yelp/")
+
+library(rjson)
+library(topicmodels)
+library(tm)
+library(slam)
+
+# 1.1 Business Dataset
+jb = readLines("yelp_academic_dataset_business.json")
+bs = lapply(jb,fromJSON)
+business_id=list()
+categories=list()
+city=list()
+review_count=list()
+name=list()
+state=list()
+stars=list()
+for(i in 1:length(bs)){
+  business_id[i] = bs[[i]]$business_id
+  categories[i] = paste(c(bs[[i]]$categories),collapse=", ")
+  city[i] = bs[[i]]$city
+  review_count[i] = bs[[i]]$review_count
+  name[i] = bs[[i]]$name
+  state[i] = bs[[i]]$state
+  stars[i] = bs[[i]]$stars
+}
+business = data.frame(business_id=unlist(business_id),name=unlist(name),categories=unlist(categories),
+                      city=unlist(city),state=unlist(state),review_count=unlist(review_count),stars=unlist(stars),
+                      stringsAsFactors=FALSE)
+business = business[grepl("Restaurants",business$categories),]
+
+# 1.2 Reviews Dataset
+jr = readLines("yelp_academic_dataset_review.json")
+rv = lapply(jr,fromJSON)
+funny=list()
+useful=list()
+cool=list()
+user_id=list()
+review_id=list()
+stars=list()
+date=list()
+text=list()
+type=list()
+
+business_id=list()
+for(i in 10000:29999){
+  funny[i] = rv[[i]]$votes$funny
+  useful[i] = rv[[i]]$votes$useful
+  cool[i] = rv[[i]]$votes$cool
+  user_id[i] = rv[[i]]$user_id
+  review_id[i] = rv[[i]]$review_id
+  stars[i] = rv[[i]]$stars 
+  date[i] = rv[[i]]$date
+  text[i] = rv[[i]]$text
+  business_id[i] = rv[[i]]$business_id
+}
+review = data.frame(review_id=unlist(review_id),text=unlist(text),user_id=unlist(user_id),
+                    date=unlist(date),funny=unlist(funny),useful=unlist(useful),
+                    cool=unlist(cool),restars=unlist(stars),business_id=unlist(business_id),
+                    stringsAsFactors=FALSE)
+# Merging Business and Review
+yelp = merge(review, business, by="business_id")
+write.csv(yelp, "yelp.csv")
+
+# 1.3 User Dataset
+ju = readLines("yelp_academic_dataset_user.json")
+us = lapply(ju,fromJSON)
+usersince=list()
+userusefulvotes=list()
+userreviewcount=list()
+user_id=list()
+userfans=list()
+useravgstars=list()
+usertype=list()
+for(i in 1:length(us)){
+  usersince[i] = us[[i]]$yelping_since
+  userusefulvotes[i] = us[[i]]$votes$useful
+  userreviewcount[i] = us[[i]]$review_count
+  user_id[i] = us[[i]]$user_id
+  userfans[i] = us[[i]]$fans
+  useravgstars[i] = us[[i]]$average_stars
+  usertype[i] = us[[i]]$type
+}
+user = data.frame(usersince=unlist(usersince),userusefulvotes=unlist(userusefulvotes),
+                  userreviewcount=unlist(userreviewcount),user_id=unlist(user_id),
+                  userfans=unlist(userfans),useravgstars=unlist(useravgstars),
+                  stringsAsFactors=FALSE)
+
+# Merging Business, Review and User
+yelp = read.csv("yelpfinal.csv")
+yelp = merge(yelp, user, by="user_id")
+write.csv(yelp, "yelpfinal.csv")
+
+yelpdate=yelp[order(as.Date(yelp$date,format='%Y-%m-%d')),]
+total=yelpdate$funny+yelpdate$useful+yelpdate$cool
+yelpdate1=data.frame(yelpdate,total)
+
+
+yelp05=yelpdate1[1:23,]
+yelp06=yelpdate1[24:87,]
+yelp07=yelpdate1[88:350,]
+yelp08=yelpdate1[351:996,]
+yelp09=yelpdate1[997:1707,]
+yelp10=yelpdate1[1708:2938,]
+yelp11=yelpdate1[2939:4781,]
+yelp12=yelpdate1[4782:6663,]
+yelp13=yelpdate1[6664:8882,]
+yelp14=yelpdate1[8883:11601,]
+yelp15=yelpdate1[11602:11667,]
+
+u1=head(order(yelp05$total,decreasing=T),round(dim(yelp05)[1]/5))
+index1=rep(0,dim(yelp05)[1])
+index1[u1]=1
+
+u2=head(order(yelp06$total,decreasing=T),round(dim(yelp06)[1]/5))
+index2=rep(0,dim(yelp06)[1])
+index2[u2]=1
+
+u3=head(order(yelp07$total,decreasing=T),round(dim(yelp07)[1]/5))
+index3=rep(0,dim(yelp07)[1])
+index3[u3]=1
+
+
+u4=head(order(yelp08$total,decreasing=T),round(dim(yelp08)[1]/5))
+index4=rep(0,dim(yelp08)[1])
+index4[u4]=1
+
+
+u5=head(order(yelp09$total,decreasing=T),round(dim(yelp09)[1]/5))
+index5=rep(0,dim(yelp09)[1])
+index5[u5]=1
+
+
+u6=head(order(yelp10$total,decreasing=T),round(dim(yelp10)[1]/5))
+index6=rep(0,dim(yelp10)[1])
+index6[u6]=1
+
+u7=head(order(yelp11$total,decreasing=T),round(dim(yelp11)[1]/5))
+index7=rep(0,dim(yelp11)[1])
+index7[u7]=1
+
+u8=head(order(yelp12$total,decreasing=T),round(dim(yelp12)[1]/5))
+index8=rep(0,dim(yelp12)[1])
+index8[u8]=1
+
+u9=head(order(yelp13$total,decreasing=T),round(dim(yelp13)[1]/5))
+index9=rep(0,dim(yelp13)[1])
+index9[u9]=1
+
+u10=head(order(yelp14$total,decreasing=T),round(dim(yelp14)[1]/5))
+index10=rep(0,dim(yelp14)[1])
+index10[u10]=1
+
+u11=head(order(yelp15$total,decreasing=T),round(dim(yelp15)[1]/5))
+index11=rep(0,dim(yelp15)[1])
+index11[u11]=1
+index=c(index1,index2,index3,index4,index5,index6,index7,index8,index9,index10,index11)
+
+
+index2=rep(0,dim(yelp)[1])
+index2[which(yelpdate1$total>0)]=1
+
+yelp$index2=index2
+
+yelp2=data.frame(yelpdate1,index2)
+
+
+test=read.csv('test.csv')
+
+write.csv(train, "train.csv")
+write.csv(test, "test.csv")
+
+
+yelp2$score<-(yelp2$funny*0.1+yelp2$useful*0.6+yelp2$cool*0.3)/(yelp2$funny+yelp2$useful+yelp2$cool)
+yelp2$score<-ifelse(is.na(yelp2$score),0,yelp2$score)
+
+levels_b<-levels(as.factor(yelp2$business_id)) 
+a=list()
+for ( i in 1:length(levels_b))
+{
+  a[[i]]=levels_b[i]
+  k=0
+  for ( j in 1:dim(yelp2)[1]){
+    if (yelp2$business_id[j] ==levels_b[i])
+    { k=k+1
+      a[[i]][k]=j
+    }
+  }
+}
+
+yelp2$business_id=as.vector(yelp2$business_id)
+c=c()
+for ( k in 1:length(levels_b)){
+  rn=as.vector(as.numeric((a[[k]])))
+  
+  for ( i in 1:length(rn)){
+    b=0
+    for (j in 1:length(rn)){
+      if (i != j)
+      {b=b+abs(yelp2$restars[rn[i]]-yelp2$restars[rn[j]])}
+    }
+    c[rn[i]]=1-(b/(5*length(rn)))
+  }}
+
+yelp2$similarity=c
+View(yelp2[which(yelp2$similarity<0.4 & yelp2$score<0.1),])
+
+yelp2$review_length = sapply(gregexpr("\\W+", yelp2$text), length) + 1
+yelp2$user_length = (2015-as.numeric(substring(yelp2$usersince,1,4)))*12 + (12-as.numeric(substring(yelp2$usersince,6,7)))
+
+write.csv(test,'test2.csv')
+
+train$review_length = sapply(gregexpr("\\W+", train$text), length) + 1
+train$user_length = (2015-as.numeric(substring(train$usersince,1,4)))*12 + (12-as.numeric(substring(train$usersince,6,7)))
+
+
+a=sample(1:dim(yelp2)[1], size = round(11667*0.8))
+train=yelp2[a,]
+test=yelp2[-a,]
+#logistic
+library(arm)
+library(MASS)
+library(Matrix)
+library(lme4)
+glm.fit = glm(index2~userusefulvotes+userreviewcount+userfans+useravgstars+similarity+review_length+user_length,
+              family='binomial'(link='logit'),data=train)
+predictlo<-predict(glm.fit,newdata=test,type='response')
+residullo<-mean((predictlo-train$index)^2)
+predictlo1=predictlo
+predictlo1[which(predictlo1<0.5)]=0
+predictlo1[which(predictlo1>=0.5)]=1
+
+nc=0
+for (i in 1:length(predictlo))
+{
+  if(predictlo1[i]==train$index[i])
+  {nc=nc+1}
+    
+}
+nc=0
+n0=0
+for(i in 1:length(predictlo1))
+{
+  if(train$index[i]==1)
+    {n0=n0+1
+       if (train$index[i]==predictlo1[i])
+  {nc=nc+1}
+  }
+}
+print(nc/n0)
+print(n0)
+
+trainp1=train[which(train$index2==1),]
+trainp2=train[which(train$index2==0),]
+trainnew=rbind(trainp1,trainp2)
+
+library()
+
+
+modelt=randomForest(as.factor(index2)~userusefulvotes+userreviewcount+userfans+useravgstars+similarity+review_length+user_length,data=train,cv.fold=10,ntree=5000)
+modelt=svm(as.factor(index2)~userusefulvotes+userreviewcount+userfans+useravgstars+similarity+review_length+user_length,data=train,cv.fold=10,ntree=5000)
+
+
+pred=predict(modelt,newdata=test)
+
+nc=0
+n0=0
+for(i in 1:length(pred))
+{
+  if(test$index[i]==0)
+  {n0=n0+1
+   if (test$index[i]==pred[i])
+   {nc=nc+1}
+  }
+}
+print(nc/n0)
+print(n0)
+
+confusionMatrix(predictlo1,test$index)
+
+
+
+191/(191+277)#naiveBayes
+library(e1071)
+nb<- naiveBayes(index2 ~ userusefulvotes+userreviewcount+userfans+useravgstars+similarity+review_length+user_length, data = train)
+
+pred=predict(nb,newdata=test,type='raw')
+predictnbi=c()
+for(i in 1:2333)
+{
+  predictnbi[i]=ifelse(pred[i,1]>pred[i,2],0,1)
+}
+
+confusionMatrix(predictnbi,test$index)
+residulnb=mean((predictnbi-train$index)^2)
+crnb=1-sum(abs(predictnbi-train$index))/2333
+
+write.csv(test,)
